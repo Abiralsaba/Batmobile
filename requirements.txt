@@ -1,0 +1,3 @@
+# Python-only base requirements for Ubuntu 22.04 VM development.
+# ROS 2 Humble is installed through apt/rosdep, not pip.
+PyYAML>=6.0,<7.0
