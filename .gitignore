@@ -1,0 +1,14 @@
+build/
+install/
+log/
+.DS_Store
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+*.egg-info/
+deps_snapshot.txt
+model_weights/
+*.engine
+*.bag
+*.db3
