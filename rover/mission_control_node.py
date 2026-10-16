@@ -1,4 +1,4 @@
-"""ROS node: Humble development-only mission state topics. IMPLEMENTED; no cmd_vel.
+"""Mission control ROS node for development state transitions. IMPLEMENTED.
 
 Subscribe /dev/cmd (std_msgs/String), publish /rover/state (std_msgs/String).
 These mock events are not judged astronaut commands and NEVER control motors.
@@ -11,9 +11,9 @@ def main():
     from rclpy.node import Node
     from std_msgs.msg import String
 
-    class RoverDev(Node):
+    class MissionControlNode(Node):
         def __init__(self):
-            super().__init__('rover_dev')
+            super().__init__('mission_control')
             self.mission = Mission()
             self.state_pub = self.create_publisher(String, '/rover/state', 10)
             self.create_subscription(String, '/dev/cmd', self.on_command, 10)
@@ -32,12 +32,15 @@ def main():
             self.state_pub.publish(msg)
 
     rclpy.init()
-    node = RoverDev()
+    node = MissionControlNode()
     try:
         rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':
