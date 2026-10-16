@@ -379,9 +379,260 @@
       .brand small { display: none; }
       main { padding: 20px 13px 90px; }
     }
+
+    /* Pixel-sunset theme inspired by the supplied reference. */
+    :root {
+      --void: #26045f;
+      --panel: #fff3cb;
+      --panel-2: #ead4ff;
+      --line: #311348;
+      --dust: #ed4b9a;
+      --dust-light: #ffd168;
+      --cream: #fff8d9;
+      --muted: #6e5482;
+      --good: #168c70;
+      --warn: #d66c2c;
+      --danger: #c62462;
+      --cyan: #57cbe8;
+      --shadow: #27103f;
+    }
+
+    html { background: #280461; color-scheme: light; }
+
+    body {
+      color: #311348;
+      background:
+        radial-gradient(circle at 9% 9%, #fffbd6 0 2px, transparent 3px),
+        radial-gradient(circle at 28% 17%, #fffbd6 0 1px, transparent 2px),
+        radial-gradient(circle at 66% 8%, #fffbd6 0 2px, transparent 3px),
+        radial-gradient(circle at 87% 22%, #fffbd6 0 1px, transparent 2px),
+        repeating-linear-gradient(to bottom, rgba(255,255,255,.055) 0 1px, transparent 1px 4px),
+        linear-gradient(to bottom, #26045f 0%, #57109e 19%, #ac258f 37%, #f04f89 52%, #ff7f69 67%, #ffb46f 82%, #fff0ae 100%);
+      background-attachment: fixed;
+      background-size: auto, auto, auto, auto, auto, auto;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: .32;
+      background-image:
+        linear-gradient(90deg, transparent 50%, rgba(42, 8, 79, .24) 50%),
+        linear-gradient(transparent 50%, rgba(255, 240, 174, .18) 50%);
+      background-size: 4px 4px;
+      mix-blend-mode: soft-light;
+    }
+
+    .pixel-sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .pixel-star { position: absolute; width: 4px; height: 4px; background: #fffbd6; box-shadow: 4px 0 #fffbd6, -4px 0 #fffbd6, 0 4px #fffbd6, 0 -4px #fffbd6; }
+    .star-one { left: 14%; top: 15%; }
+    .star-two { left: 72%; top: 20%; transform: scale(.7); }
+    .star-three { right: 8%; top: 10%; transform: scale(1.2); }
+    .pixel-cloud {
+      position: absolute;
+      width: 76px;
+      height: 22px;
+      border: 3px solid #32134e;
+      background: #fffbdc;
+      box-shadow: 6px 6px 0 #75cbe7, 9px 9px 0 rgba(49,19,72,.75);
+      clip-path: polygon(0 45%, 14% 45%, 14% 25%, 28% 25%, 28% 8%, 56% 8%, 56% 22%, 75% 22%, 75% 38%, 100% 38%, 100% 82%, 0 82%);
+    }
+    .cloud-one { top: 16%; left: 5%; transform: scale(.75); }
+    .cloud-two { top: 24%; right: 7%; transform: scale(1.15); }
+    .cloud-three { top: 44%; left: 44%; transform: scale(.62); opacity: .9; }
+
+    .topbar, .shell { position: relative; z-index: 2; }
+    .topbar {
+      border-bottom: 4px solid #32134e;
+      color: #fff7d6;
+      background: rgba(70, 10, 137, .94);
+      box-shadow: 0 6px 0 #32134e, 0 9px 0 rgba(255, 209, 104, .55);
+      backdrop-filter: blur(8px);
+    }
+
+    .brand-mark {
+      border-color: #32134e;
+      background: #fff4c8;
+      box-shadow: inset 0 -7px #ca9cff, 5px 5px 0 #27103f;
+    }
+    .brand-mark::before, .brand-mark::after { border-color: #32134e; background: #ed4b9a; }
+    .brand h1 {
+      color: #fff8db;
+      font-size: 20px;
+      font-weight: 900;
+      text-shadow: 3px 0 #311348, -3px 0 #311348, 0 3px #311348, 0 -3px #311348, 4px 4px #ae47d4;
+    }
+    .brand small { color: #ffd168; font-weight: 800; }
+
+    .chip {
+      border: 2px solid #9e63d1;
+      background: #32105f;
+      color: #d9b9f7;
+      box-shadow: 2px 2px 0 #210b39;
+    }
+    .chip strong { color: #fff8d9; }
+    .chip.good { border-color: #7df0ba; }
+    .chip.warn { border-color: #ffd168; }
+    .chip.bad { border-color: #ff7bac; }
+    .dot { background: #a98abd; box-shadow: 0 0 0 2px #1f0b39; }
+
+    .sidebar {
+      border-right: 4px solid #311348;
+      background: rgba(53, 10, 102, .94);
+      box-shadow: 5px 0 0 rgba(255, 209, 104, .45);
+      scrollbar-color: #ed4b9a #32105f;
+    }
+    .nav-title { color: #ffd168; font-weight: 900; text-shadow: 2px 2px #311348; }
+    .nav-button {
+      margin: 5px 0;
+      border: 2px solid transparent;
+      border-left: 5px solid transparent;
+      color: #e4c7ff;
+      font-weight: 700;
+    }
+    .nav-button:hover { border-color: #d69cff; background: #6b1ba4; color: #fff8d9; }
+    .nav-button.active {
+      border-color: #311348;
+      border-left-color: #ffd168;
+      color: #311348;
+      background: #ff84ae;
+      box-shadow: 4px 4px 0 #210b39;
+    }
+    .nav-button .nav-number { color: #ffd168; }
+    .nav-button.active .nav-number { color: #6b1b78; }
+
+    main { position: relative; }
+    .screen-header {
+      padding: 20px;
+      border: 3px solid #311348;
+      background: rgba(255, 246, 210, .94);
+      box-shadow: 7px 7px 0 #311348, 11px 11px 0 rgba(118, 44, 151, .45);
+    }
+    .eyebrow { color: #bd287f; font-weight: 900; }
+    .screen-header h2 {
+      color: #3c1758;
+      font-weight: 900;
+      text-shadow: 3px 3px 0 #d9adff;
+    }
+    .screen-header p { color: #674f78; font-weight: 600; }
+    .state-tag {
+      border: 3px solid #311348;
+      color: #3c1758;
+      background: #ffd168;
+      box-shadow: 4px 4px 0 #311348;
+      font-weight: 900;
+    }
+
+    .card {
+      border: 3px solid #311348;
+      color: #311348;
+      background: linear-gradient(145deg, rgba(255,248,217,.98), rgba(238,216,255,.98));
+      box-shadow: 7px 7px 0 #311348;
+    }
+    .card.accent { border-color: #311348; background: linear-gradient(145deg, #fff3c9, #ffc9db); }
+    .card.danger { border-color: #8d174f; background: #ffd5df; }
+    .card h3 { color: #982270; font-weight: 900; }
+    .card p { color: #674f78; }
+
+    .metric {
+      border: 2px solid #5b3275;
+      color: #311348;
+      background: rgba(255, 251, 225, .8);
+      box-shadow: 3px 3px 0 rgba(80, 34, 103, .25);
+    }
+    .metric label { color: #765786; font-weight: 900; }
+    .metric output, .metric output.orange { color: #3b1757; }
+    .metric output.green { color: #08775d; }
+
+    .field label, .field span { color: #634475; font-weight: 900; text-transform: uppercase; }
+    input, select {
+      border: 3px solid #4b2367;
+      color: #311348;
+      background: #fffbea;
+      box-shadow: inset 3px 3px 0 rgba(205, 166, 224, .42);
+    }
+    input:focus, select:focus { border-color: #d72d8a; box-shadow: 0 0 0 3px #ffc2dd; }
+
+    .pixel-button {
+      border: 3px solid #311348;
+      color: #311348;
+      background: #d8b3ff;
+      box-shadow: 4px 4px 0 #311348;
+      font-weight: 900;
+    }
+    .pixel-button:hover:not(:disabled) { box-shadow: 2px 2px 0 #311348; filter: saturate(1.15) brightness(1.04); }
+    .pixel-button.primary { border-color: #311348; color: #311348; background: #ff8cb4; }
+    .pixel-button.safe { border-color: #174d50; color: #123c3f; background: #80e0c1; }
+    .pixel-button.stop { border-color: #54103a; color: #fff8d9; background: #c82568; }
+    .pixel-button.ghost { color: #4d2465; background: #fff8d9; }
+    .pixel-button:disabled { color: #75627e; background: #c9bad0; }
+
+    .mission-choice {
+      border: 4px solid #311348;
+      color: #fff8d9;
+      background: linear-gradient(145deg, #6f1ca6 0%, #b62b9a 55%, #e85396 100%);
+      box-shadow: 9px 9px 0 #311348, 13px 13px 0 rgba(255, 209, 104, .65);
+    }
+    .mission-choice:hover { border-color: #fff3bd; box-shadow: 9px 9px 0 #311348, 13px 13px 0 #ff7f69; }
+    .mission-choice .score { color: #ffd168; text-shadow: 3px 3px 0 #311348; }
+    .mission-choice h3 { color: #fff8d9; text-shadow: 3px 3px 0 #311348; }
+    .mission-choice p { color: #f7ddff; }
+
+    .pixel-stage {
+      border: 4px solid #311348;
+      background:
+        linear-gradient(transparent 64%, #ff9b6e 64%, #ff9b6e 69%, #fff0ae 69%),
+        repeating-linear-gradient(to bottom, rgba(255,255,255,.08) 0 2px, transparent 2px 5px),
+        linear-gradient(145deg, #5d119b, #d43c95 55%, #ff795f);
+      box-shadow: 7px 7px 0 #311348;
+    }
+    .pixel-stage::before { border-color: rgba(255,248,217,.75); }
+    .crosshair { border-color: #fff5bd; }
+    .crosshair::before, .crosshair::after { background: #fff5bd; }
+    .stage-label { border: 2px solid #311348; color: #311348; background: #fff2bc; }
+
+    .move-cell { border: 3px solid #503068; color: #765b84; background: #f0dcff; }
+    .move-cell.active { border-color: #311348; color: #311348; background: #ffd168; box-shadow: 4px 4px 0 #311348; }
+    .list-row { border: 2px solid #5b3275; background: rgba(255,248,217,.72); }
+    .mini { border: 2px solid #311348; color: #311348; background: #e0b8ff; box-shadow: 2px 2px 0 #311348; }
+    .threshold { border: 3px solid #185c58; border-left-width: 7px; color: #154e4b; background: #a8efd5; box-shadow: 4px 4px 0 #24555b; font-weight: 900; }
+    .future { border: 4px dashed #63317d; color: #4d2b60; background: repeating-linear-gradient(135deg, #f4ddff, #f4ddff 10px, #ffe8b5 10px, #ffe8b5 20px); }
+    .future strong { color: #a32174; text-shadow: 2px 2px #ffd168; }
+
+    .route-map {
+      border: 4px solid #311348;
+      background:
+        radial-gradient(circle at 20% 70%, #63d6a8 0 6px, transparent 7px),
+        radial-gradient(circle at 55% 30%, #ff6a9f 0 6px, transparent 7px),
+        radial-gradient(circle at 80% 60%, #63d8ed 0 6px, transparent 7px),
+        linear-gradient(27deg, transparent 49%, #bd4a8f 50%, transparent 51%),
+        repeating-linear-gradient(0deg, #fce9b2, #fce9b2 12px, #f6d99c 12px, #f6d99c 14px);
+      box-shadow: 7px 7px 0 #311348;
+    }
+    .route-map::after { color: #4f2b67; font-weight: 900; }
+    .notice { border: 3px solid #683153; color: #542440; background: #ffe1a2; box-shadow: 4px 4px 0 #311348; }
+    .notice.error { border-color: #721344; color: #65123e; background: #ffc5d8; }
+    .notice.good { border-color: #176353; color: #0e5748; background: #adf0d0; }
+    .toast { border: 3px solid #311348; color: #311348; background: #fff3c4; box-shadow: 6px 6px 0 #311348; }
+    .fault { border-left-color: #b81e5c; color: #5d2444; background: #ffd1de; }
+    .fault strong { color: #a41451; }
+
+    @media (max-width: 720px) {
+      .sidebar { border-right: 0; border-bottom: 4px solid #311348; box-shadow: 0 5px 0 rgba(255, 209, 104, .45); }
+      .nav-button.active { border-bottom-color: #ffd168; }
+      .pixel-cloud { opacity: .45; }
+      .screen-header { box-shadow: 5px 5px 0 #311348; }
+    }
   </style>
 </head>
 <body>
+  <div class="pixel-sky" aria-hidden="true">
+    <span class="pixel-star star-one"></span><span class="pixel-star star-two"></span><span class="pixel-star star-three"></span>
+    <span class="pixel-cloud cloud-one"></span><span class="pixel-cloud cloud-two"></span><span class="pixel-cloud cloud-three"></span>
+  </div>
   <header class="topbar">
     <div class="brand">
       <div class="brand-mark" aria-hidden="true"></div>
