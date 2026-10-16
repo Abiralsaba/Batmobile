@@ -14,5 +14,6 @@ Every module's opening docstring is its tiny in-file README. Files live together
 | `hw.py` | Disabled placeholders for old motors, GNSS, Pi/EKF |
 | `eva.py` | Future astronaut GNSS + EVA audio/video bridge |
 | `arm.py` | Future autonomous hammer pick / give |
-| `node.py` | Development-only ROS 2 state-machine node |
+| `mission_control_node.py` | Development-only ROS 2 mission state node |
+| `web.py` | Offline FastAPI dashboard, safe DEV simulator, and atomic `input.json` API |
 | `demo.py` | Non-actuating offline/VM demonstration |

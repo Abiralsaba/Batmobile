@@ -5,14 +5,14 @@ You are the lead ROS 2 robotics engineer implementing an autonomous astronaut-as
 Read `BRAIN.md`, `ROADMAP.md`, `MODULES.md`, `config.yaml`, `DEPENDENCIES.md` and `README.md` in full before editing. Follow URC 2027 scoring facts in BRAIN. Assume previously developed GNSS, IMU, EKF, ROS navigation, MIT motor bus, Pi code will be supplied later: never invent their topic names, implementations or behavior. Provide replaceable adapter methods in `hw.py` and `nav.py` until real code arrives.
 
 ## Non-negotiable directory rule
-- Keep the source **flat and easy to navigate**: `rover/vision.py`, `rover/gesture.py`, `rover/hammer.py`, `rover/voice.py`, `rover/nav.py`, `rover/mission.py`, `rover/safety.py`, `rover/hw.py`, `rover/eva.py`, `rover/arm.py`, `rover/node.py`, `rover/demo.py`. One code file per named feature; **no nested subpackages** and no proliferation of nodes or filenames without explicit need.
+- Keep the source **flat and easy to navigate**: `rover/vision.py`, `rover/gesture.py`, `rover/hammer.py`, `rover/voice.py`, `rover/nav.py`, `rover/mission.py`, `rover/safety.py`, `rover/hw.py`, `rover/eva.py`, `rover/arm.py`, `rover/mission_control_node.py`, `rover/demo.py`. One code file per named feature; **no nested subpackages** and no proliferation of nodes or filenames without explicit need.
 - Every module begins with a **very short docstring** describing what it does, expected input/output and whether it is MOCK/FUTURE/REAL. Keep `MODULES.md` concise and update it as needed; do not add separate per-module README folders.
 - Root docs are `README.md`, `BRAIN.md`, `ROADMAP.md`, `MODULES.md`, `DEPENDENCIES.md`; root Python deps are `requirements.txt` and `requirements-jetson.txt`.
 - Prefer simple, typed Python 3.10 code, dataclasses, logging, pure testable logic, parameterized ROS 2 wrappers, ROS 2 Humble public APIs, modest dependencies. No enormous frameworks, end-to-end LLM, or cloud calls.
 
 ## Work plan (strict sequence)
 0. Validate Ubuntu VM environment: CPU architecture, Python 3.10, Humble, `colcon`, `rosdep`. Do not assume Jetson GPU exists inside Mac VM.
-1. Establish one ROS 2 package with the flat structure; verify `colcon build --symlink-install`, `ros2 launch mars_rover dev.launch.py`, `/dev/cmd`, `/rover/state`. Keep all outputs non-actuating.
+1. Establish one ROS 2 package with the flat structure; verify `colcon build --symlink-install`, `ros2 launch mars_rover mars_rover.launch.py`, `/dev/cmd`, `/rover/state`. Keep all outputs non-actuating.
 2. Integrate ZED X in the later Jetson environment through its supported SDK / ROS 2 wrapper; build a simulator/recorded-message adapter in VM first. ZED X requires correct GMSL2 hardware and supported SDK/JetPack pairing, not `cv2.VideoCapture(0)` by assumption.
 3. Add timestamped `base_link` 3D person target and tracking ID; use ZED native body tracking first, YOLO11n-Pose + ByteTrack only if needed. Test frame, transform, reacquisition and stale target behavior.
 4. Add stereo-depth obstacle checks and FOLLOW controller; start with simulations. Never allow unknown depth to mean clear path.

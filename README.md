@@ -23,7 +23,7 @@ python3 -m pip install --user -r src/mars_rover/requirements.txt
 rosdep install --from-paths src --ignore-src -r -y
 colcon build --symlink-install
 source install/setup.bash
-ros2 launch mars_rover dev.launch.py
+ros2 launch mars_rover mars_rover.launch.py
 ```
 
 > Install `python3-colcon-common-extensions`, `python3-rosdep`, and `ros-humble-ros-base` / `ros-humble-desktop` as needed. Use system Python for ROS 2 to avoid mixing mismatched rclpy installations. Ubuntu ROS packages come from apt, not pip. See [DEPENDENCIES.md](DEPENDENCIES.md).
@@ -34,6 +34,10 @@ In a **second sourced terminal**:
 ros2 topic echo /rover/state
 ros2 topic pub --once /dev/cmd std_msgs/msg/String '{data: "start"}'
 ```
+
+The launch file currently starts one executable, `mission_control_node`. Future
+perception or hardware files will gain `_node.py` names only when they become
+real ROS nodes; the existing feature modules remain pure, testable logic.
 
 For a pure Python simulation (works in the VM with Python even without ROS):
 

@@ -4,7 +4,7 @@
 
 | Phase | Build | File(s) | Test |
 |---|---|---|---|
-| 0 | Ubuntu 22.04 VM Humble package + mocked old hardware | `node.py`, `hw.py`, `config.yaml` | colcon, mock events, no motor motion |
+| 0 | Ubuntu 22.04 VM Humble package + mocked old hardware | `mission_control_node.py`, `hw.py`, `config.yaml` | colcon, mock events, no motor motion |
 | 1 | ZED X RGB, stereo range; Jetson vendor adapter later | `vision.py` | calibrated 3D human position, times, confidence |
 | 2 | Existing GNSS waypoint adapter (5 pts) | `nav.py`, `hw.py` | within 3 m in safe trials |
 | 3 | Astronaut tracking / identity locking | `vision.py` | no silent identity swaps |

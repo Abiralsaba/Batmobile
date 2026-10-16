@@ -29,7 +29,7 @@ URC 2027 Astronaut Assistance, first 50 points: EVA suit video/mic (5), GNSS app
 The topic names in `config.yaml` are illustrative. Query real ROS topics, frames and ZED wrapper version before integrating. Keep all measurements timestamped and in named frames (person relative to ROS `base_link`: X forward, Y left; depth confidence/uncertainty included).
 
 ## Important boundary
-Current scaffold is **non-actuating**. `node.py` exposes `/dev/cmd` and `/rover/state` only; actual perception, Whisper, obstacle navigation and motor integration are intentionally unfinished. Make simulations/mock tests pass before real robot connection.
+Current scaffold is **non-actuating**. `mission_control_node.py` exposes `/dev/cmd` and `/rover/state` only; actual perception, Whisper, obstacle navigation and motor integration are intentionally unfinished. Make simulations/mock tests pass before real robot connection.
 
 ## Progress
 - [x] Flat scaffold + docs + tests
