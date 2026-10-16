@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "astronaut_assistance": {
+    "initial_target": {
+      "latitude": null,
+      "longitude": null
+    },
+    "updated_astronaut_location": {
+      "latitude": null,
+      "longitude": null,
+      "timestamp": null
+    },
+    "intermediate_waypoints": []
+  },
+  "route_finding": {
+    "start": {
+      "latitude": null,
+      "longitude": null
+    },
+    "target_1": {
+      "latitude": null,
+      "longitude": null
+    },
+    "target_2": {
+      "latitude": null,
+      "longitude": null
+    },
+    "waypoints": [],
+    "stay_out_zones": []
+  },
+  "saved_parameters": {
+    "desired_follow_distance_m": 2.0,
+    "astronaut_success_threshold_m": 3.0,
+    "route_success_threshold_m": 1.0,
+    "approval_timeout_s": 10.0,
+    "gnss_freshness_s": 60.0,
+    "hammer_staging_distance_m": 1.5
+  }
+}
