@@ -1,0 +1,952 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mars Rover // Autonomous Mission</title>
+  <style>
+    :root {
+      --void: #090a0d;
+      --panel: #11141a;
+      --panel-2: #171b22;
+      --line: #343b46;
+      --dust: #f16f32;
+      --dust-light: #ffad66;
+      --cream: #f4e6cf;
+      --muted: #8b96a7;
+      --good: #65d37e;
+      --warn: #f2c14e;
+      --danger: #ff4f57;
+      --cyan: #5cd9e8;
+      --shadow: #000;
+      --sidebar: 270px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--void); color-scheme: dark; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--cream);
+      background:
+        linear-gradient(rgba(241, 111, 50, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(241, 111, 50, .035) 1px, transparent 1px),
+        radial-gradient(circle at 80% 5%, #2d170f 0, transparent 32%),
+        var(--void);
+      background-size: 16px 16px, 16px 16px, auto, auto;
+      font-family: "Courier New", ui-monospace, monospace;
+      font-size: 15px;
+      image-rendering: pixelated;
+    }
+
+    button, input, select { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 18px;
+      align-items: center;
+      min-height: 72px;
+      padding: 10px 16px;
+      border-bottom: 4px solid var(--dust);
+      background: rgba(9, 10, 13, .96);
+      box-shadow: 0 5px 0 rgba(0, 0, 0, .65);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: max-content;
+    }
+
+    .brand-mark {
+      position: relative;
+      width: 42px;
+      height: 28px;
+      border: 4px solid var(--dust-light);
+      background: var(--dust);
+      box-shadow: inset 0 -7px #9e361b, 5px 5px 0 #000;
+    }
+
+    .brand-mark::before, .brand-mark::after {
+      content: "";
+      position: absolute;
+      bottom: -11px;
+      width: 10px;
+      height: 10px;
+      border: 3px solid var(--cream);
+      background: #171b22;
+    }
+
+    .brand-mark::before { left: 2px; }
+    .brand-mark::after { right: 2px; }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 17px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .brand small { display: block; color: var(--dust-light); margin-top: 3px; }
+
+    .status-strip {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      padding: 2px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: max-content;
+      padding: 7px 9px;
+      border: 2px solid var(--line);
+      background: #0c0e12;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .chip strong { color: var(--cream); font-weight: 700; }
+    .chip.good { border-color: var(--good); }
+    .chip.warn { border-color: var(--warn); }
+    .chip.bad { border-color: var(--danger); }
+    .dot { width: 8px; height: 8px; background: var(--muted); box-shadow: 0 0 0 2px #20252d; }
+    .good .dot { background: var(--good); }
+    .warn .dot { background: var(--warn); }
+    .bad .dot { background: var(--danger); }
+
+    .shell { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: calc(100vh - 72px); }
+
+    .sidebar {
+      position: sticky;
+      top: 72px;
+      height: calc(100vh - 72px);
+      overflow-y: auto;
+      padding: 18px 12px 90px;
+      border-right: 3px solid var(--line);
+      background: rgba(14, 16, 21, .97);
+    }
+
+    .nav-title {
+      margin: 18px 8px 7px;
+      color: var(--dust-light);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .nav-title:first-child { margin-top: 0; }
+
+    .nav-button {
+      width: 100%;
+      margin: 3px 0;
+      padding: 10px 10px;
+      border: 0;
+      border-left: 4px solid transparent;
+      color: #aab3c0;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .nav-button:hover { background: #1a1e25; color: #fff; }
+    .nav-button.active { border-left-color: var(--dust); background: #261914; color: var(--dust-light); }
+    .nav-button .nav-number { display: inline-block; width: 26px; color: #687384; }
+
+    main { min-width: 0; padding: 26px clamp(16px, 3vw, 42px) 100px; }
+
+    .view { display: none; animation: screen-in .18s steps(3); }
+    .view.active { display: block; }
+    @keyframes screen-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+    .screen-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--line);
+      padding-bottom: 16px;
+    }
+
+    .eyebrow { color: var(--dust); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
+    .screen-header h2 { margin: 5px 0 3px; font-size: clamp(24px, 4vw, 42px); letter-spacing: 2px; text-transform: uppercase; }
+    .screen-header p { max-width: 760px; margin: 6px 0 0; color: var(--muted); line-height: 1.55; }
+
+    .state-tag {
+      min-width: max-content;
+      padding: 9px 12px;
+      border: 2px solid var(--dust);
+      color: var(--dust-light);
+      background: #251610;
+      text-transform: uppercase;
+      box-shadow: 4px 4px 0 #000;
+    }
+
+    .grid { display: grid; gap: 16px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      position: relative;
+      padding: 18px;
+      border: 2px solid var(--line);
+      background: linear-gradient(145deg, rgba(26, 30, 38, .98), rgba(14, 16, 21, .98));
+      box-shadow: 6px 6px 0 rgba(0, 0, 0, .7);
+    }
+
+    .card.accent { border-color: #8e492d; }
+    .card.danger { border-color: #773238; }
+    .card h3 { margin: 0 0 14px; color: var(--dust-light); font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
+    .card p { color: var(--muted); line-height: 1.5; }
+
+    .metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .metric {
+      min-height: 72px;
+      padding: 11px;
+      border: 1px solid var(--line);
+      background: #0d1015;
+    }
+    .metric label { display: block; margin-bottom: 8px; color: var(--muted); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+    .metric output { color: var(--cream); font-size: 17px; font-weight: bold; overflow-wrap: anywhere; }
+    .metric output.orange { color: var(--dust-light); }
+    .metric output.green { color: var(--good); }
+
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .field { display: grid; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+    input, select {
+      width: 100%;
+      padding: 11px 10px;
+      border: 2px solid #3a424e;
+      border-radius: 0;
+      outline: 0;
+      color: var(--cream);
+      background: #090b0f;
+    }
+    input:focus, select:focus { border-color: var(--dust); box-shadow: 0 0 0 2px #482317; }
+    input:disabled, select:disabled { opacity: .45; cursor: not-allowed; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 16px; }
+    .pixel-button {
+      padding: 10px 14px;
+      border: 2px solid #626d7c;
+      border-radius: 0;
+      color: var(--cream);
+      background: #202630;
+      box-shadow: 3px 3px 0 #000;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      font-size: 12px;
+    }
+    .pixel-button:hover:not(:disabled) { transform: translate(1px, 1px); box-shadow: 2px 2px 0 #000; filter: brightness(1.15); }
+    .pixel-button:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: none; }
+    .pixel-button.primary { border-color: var(--dust-light); background: #8b351b; }
+    .pixel-button.safe { border-color: var(--good); background: #174626; }
+    .pixel-button.stop { border-color: #ff9095; background: #8d252b; font-weight: 800; }
+    .pixel-button.ghost { background: transparent; }
+    .pixel-button:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
+
+    .global-stop { min-width: 120px; font-size: 13px; }
+
+    .mission-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin: 20px 0; }
+    .mission-choice {
+      min-height: 240px;
+      padding: 24px;
+      border: 3px solid var(--line);
+      background: #12161c;
+      cursor: pointer;
+      text-align: left;
+      box-shadow: 8px 8px 0 #000;
+    }
+    .mission-choice:hover { border-color: var(--dust); transform: translate(-2px, -2px); }
+    .mission-choice .score { color: var(--dust-light); font-size: 46px; font-weight: bold; }
+    .mission-choice h3 { margin: 18px 0 8px; color: var(--cream); font-size: 22px; }
+    .mission-choice p { color: var(--muted); line-height: 1.55; }
+
+    .pixel-stage {
+      position: relative;
+      min-height: 250px;
+      overflow: hidden;
+      border: 3px solid #64331f;
+      background:
+        linear-gradient(transparent 65%, #4a2518 65%, #4a2518 69%, #29150f 69%),
+        linear-gradient(135deg, #351c13, #100d0c 65%);
+    }
+    .pixel-stage::before {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border: 1px dashed rgba(255, 173, 102, .35);
+    }
+    .crosshair { position: absolute; inset: 50% auto auto 50%; width: 80px; height: 80px; transform: translate(-50%, -50%); border: 3px solid var(--dust); }
+    .crosshair::before, .crosshair::after { content: ""; position: absolute; background: var(--dust); }
+    .crosshair::before { width: 120px; height: 2px; left: -23px; top: 36px; }
+    .crosshair::after { width: 2px; height: 120px; left: 36px; top: -23px; }
+    .stage-label { position: absolute; left: 18px; bottom: 18px; padding: 7px; background: #08090c; color: var(--dust-light); }
+
+    .movement-pad { display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(2, 54px); gap: 7px; justify-content: center; }
+    .move-cell { display: grid; place-items: center; border: 2px solid var(--line); background: #0b0d11; color: #667181; font-weight: bold; }
+    .move-cell.active { border-color: var(--dust-light); background: #713019; color: #fff; box-shadow: 0 0 16px rgba(241, 111, 50, .3); }
+    .move-forward { grid-column: 2; }
+    .move-left { grid-column: 1; grid-row: 2; }
+    .move-stop { grid-column: 2; grid-row: 2; }
+    .move-right { grid-column: 3; grid-row: 2; }
+
+    .list-editor { display: grid; gap: 9px; margin-top: 12px; }
+    .list-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr auto; gap: 7px; align-items: end; padding: 10px; border: 1px solid var(--line); background: #0c0e12; }
+    .list-row.zone { grid-template-columns: 1.1fr 1fr 1fr .8fr auto; }
+    .mini-actions { display: flex; gap: 4px; }
+    .mini { padding: 8px; border: 1px solid var(--line); background: #242a33; color: #fff; cursor: pointer; }
+
+    .threshold { padding: 12px; border-left: 5px solid var(--good); background: #102017; color: var(--good); }
+    .future { border: 3px dashed #5a6472; padding: 24px; text-align: center; background: repeating-linear-gradient(135deg, #101319, #101319 10px, #141820 10px, #141820 20px); }
+    .future strong { display: block; color: var(--warn); font-size: 22px; margin-bottom: 10px; }
+
+    .route-map {
+      min-height: 280px;
+      position: relative;
+      border: 3px solid var(--line);
+      background:
+        radial-gradient(circle at 20% 70%, var(--good) 0 5px, transparent 6px),
+        radial-gradient(circle at 55% 30%, var(--dust) 0 5px, transparent 6px),
+        radial-gradient(circle at 80% 60%, var(--cyan) 0 5px, transparent 6px),
+        linear-gradient(27deg, transparent 49%, #4a2b20 50%, transparent 51%),
+        #12151a;
+    }
+    .route-map::after { content: "ROUTE VISUALIZATION // WAITING FOR NAV BACKEND"; position: absolute; inset: auto 14px 14px; color: var(--muted); }
+
+    .notice { margin: 14px 0; padding: 12px 14px; border: 2px solid var(--warn); background: #2b2411; color: #ffe39a; }
+    .notice.error { border-color: var(--danger); background: #2a1013; color: #ffafb3; }
+    .notice.good { border-color: var(--good); background: #102317; color: #a7f0b7; }
+    .hidden { display: none !important; }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 100;
+      max-width: 420px;
+      padding: 14px 16px;
+      border: 2px solid var(--dust-light);
+      background: #11141a;
+      box-shadow: 6px 6px 0 #000;
+      color: #fff;
+    }
+
+    .fault-list { display: grid; gap: 10px; }
+    .fault { padding: 12px; border-left: 5px solid var(--danger); background: #281216; }
+    .fault strong { color: #ff9297; }
+
+    @media (max-width: 1000px) {
+      .topbar { grid-template-columns: 1fr auto; }
+      .status-strip { grid-column: 1 / -1; order: 3; }
+      .shell { grid-template-columns: 220px 1fr; }
+      :root { --sidebar: 220px; }
+      .grid.four, .grid.three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 720px) {
+      .shell { display: block; }
+      .sidebar { position: static; height: auto; display: flex; overflow-x: auto; gap: 5px; padding: 10px; border-right: 0; border-bottom: 2px solid var(--line); }
+      .nav-title { display: none; }
+      .nav-button { min-width: max-content; border-left: 0; border-bottom: 3px solid transparent; }
+      .nav-button.active { border-bottom-color: var(--dust); }
+      .screen-header { display: block; }
+      .state-tag { display: inline-block; margin-top: 14px; }
+      .grid.two, .grid.three, .grid.four, .mission-choices { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .list-row, .list-row.zone { grid-template-columns: 1fr 1fr; }
+      .topbar { position: static; }
+      .brand small { display: none; }
+      main { padding: 20px 13px 90px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <div><h1>Mars Rover</h1><small>URC 2027 // Autonomous Mission</small></div>
+    </div>
+    <div class="status-strip" aria-label="Persistent mission status">
+      <span class="chip"><span class="dot"></span>Mode <strong data-bind="mode">DEV</strong></span>
+      <span class="chip"><span class="dot"></span>Mission <strong data-bind="active_sub_mission">NONE</strong></span>
+      <span class="chip"><span class="dot"></span>State <strong data-bind="state">READY</strong></span>
+      <span class="chip" id="motion-chip"><span class="dot"></span>Motion <strong data-bind="motion_state">UNKNOWN</strong></span>
+      <span class="chip" id="gnss-chip"><span class="dot"></span>GNSS <strong id="global-gnss">NO FIX</strong></span>
+      <span class="chip" id="camera-chip"><span class="dot"></span>Camera <strong data-bind="camera.status">DISCONNECTED</strong></span>
+      <span class="chip" id="connection-chip"><span class="dot"></span>Link <strong data-bind="connection">OFFLINE</strong></span>
+    </div>
+    <button class="pixel-button stop global-stop" data-command="stop">■ SOFTWARE STOP</button>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar" aria-label="Mission screens">
+      <div class="nav-title">Overview</div>
+      <button class="nav-button active" data-screen-target="home"><span class="nav-number">00</span> Home</button>
+      <div class="nav-title">Astronaut Assistance // 50</div>
+      <button class="nav-button" data-screen-target="gnss-approach"><span class="nav-number">01</span> GNSS Approach</button>
+      <button class="nav-button" data-screen-target="wait-command"><span class="nav-number">02</span> Wait Command</button>
+      <button class="nav-button" data-screen-target="follow"><span class="nav-number">03</span> Follow</button>
+      <button class="nav-button" data-screen-target="stay"><span class="nav-number">04</span> Stay</button>
+      <button class="nav-button" data-screen-target="find-hammer"><span class="nav-number">05</span> Find Hammer</button>
+      <button class="nav-button" data-screen-target="hammer-approach"><span class="nav-number">06</span> Hammer Approach</button>
+      <button class="nav-button" data-screen-target="pick-hammer"><span class="nav-number">07</span> Pick Hammer</button>
+      <button class="nav-button" data-screen-target="come"><span class="nav-number">08</span> Come</button>
+      <button class="nav-button" data-screen-target="give"><span class="nav-number">09</span> Give</button>
+      <div class="nav-title">Route Finding // 50</div>
+      <button class="nav-button" data-screen-target="route-start"><span class="nav-number">R1</span> Start Point</button>
+      <button class="nav-button" data-screen-target="route-target-1"><span class="nav-number">R2</span> Target 1</button>
+      <button class="nav-button" data-screen-target="route-target-2"><span class="nav-number">R3</span> Target 2</button>
+      <button class="nav-button" data-screen-target="route-waypoints"><span class="nav-number">R4</span> Waypoints</button>
+      <button class="nav-button" data-screen-target="route-status"><span class="nav-number">R5</span> Route Status</button>
+      <div class="nav-title">Safety</div>
+      <button class="nav-button" data-screen-target="recovery"><span class="nav-number">!!</span> Recovery</button>
+    </aside>
+
+    <main>
+      <div id="connection-notice" class="notice error hidden"></div>
+      <div id="config-conflict" class="notice error hidden">
+        <strong>INPUT.JSON CHANGED</strong> — Unsaved browser edits were not overwritten.
+        <button class="pixel-button ghost" id="reload-conflict">Discard browser edits &amp; reload file</button>
+      </div>
+      <div id="editing-lock" class="notice hidden">LIVE configuration editing is locked until stationary motion is confirmed.</div>
+
+      <section class="view active" data-screen="home" id="screen-home">
+        <div class="screen-header">
+          <div><div class="eyebrow">Mission Select</div><h2>Autonomous Mission</h2><p>One offline control surface for the two scored autonomous sections. Hardware motion is disabled; all current controls are clearly marked DEV.</p></div>
+          <div class="state-tag">ROS // <span data-bind="state">READY</span></div>
+        </div>
+        <div class="mission-choices">
+          <button class="mission-choice" data-screen-target="gnss-approach">
+            <div class="score">50</div><h3>Astronaut Assistance</h3><p>GNSS approach, command wait, following, stay, hammer staging, come and future arm actions.</p>
+          </button>
+          <button class="mission-choice" data-screen-target="route-start">
+            <div class="score">50</div><h3>Autonomous Route Finding</h3><p>Configure start, targets, waypoints and stay-out zones. LIVE execution remains locked.</p>
+          </button>
+        </div>
+        <div class="grid four">
+          <div class="metric"><label>Rover status</label><output data-bind="motion_state">stationary</output></div>
+          <div class="metric"><label>GNSS status</label><output id="home-gnss">NO FIX</output></div>
+          <div class="metric"><label>Connection</label><output data-bind="connection">DEV SIMULATOR</output></div>
+          <div class="metric"><label>Mission control</label><output data-bind="mission_control_status">SAFE DEV</output></div>
+        </div>
+        <div class="actions">
+          <label class="field" style="min-width:210px"><span>Runtime mode</span><select id="runtime-mode"><option>DEV</option><option>LIVE</option></select></label>
+          <button class="pixel-button" id="apply-mode">Apply mode</button>
+        </div>
+        <div class="notice">DEV mode never publishes motor commands. LIVE mode is intentionally blocked until the real ROS navigation and safety backend is verified.</div>
+      </section>
+
+      <section class="view" data-screen="gnss-approach" id="screen-gnss-approach">
+        <div class="screen-header"><div><div class="eyebrow">Astronaut Assistance // 01</div><h2>GNSS Approach</h2><p>Save an initial astronaut coordinate and optional intermediate waypoints. Saving never starts movement.</p></div><div class="state-tag">Expected // GO_TO_ASTRONAUT</div></div>
+        <div class="grid two">
+          <div class="card accent"><h3>Target Coordinates</h3><div class="form-grid">
+            <div class="field"><label>Latitude</label><input class="config-input" id="aa-target-lat" type="number" min="-90" max="90" step="any" placeholder="null"></div>
+            <div class="field"><label>Longitude</label><input class="config-input" id="aa-target-lon" type="number" min="-180" max="180" step="any" placeholder="null"></div>
+          </div><div class="actions"><button class="pixel-button save-button" data-save>Save Coordinates</button><button class="pixel-button ghost" data-reload>Load input.json</button></div></div>
+          <div class="card"><h3>Navigation Telemetry</h3><div class="metric-grid">
+            <div class="metric"><label>Current GNSS</label><output id="gnss-current">UNKNOWN</output></div>
+            <div class="metric"><label>Target distance</label><output>—</output></div>
+            <div class="metric"><label>Navigation state</label><output data-bind="state">READY</output></div>
+            <div class="metric"><label>Arrival</label><output>NOT CONFIRMED</output></div>
+          </div><div class="threshold">SUCCESS THRESHOLD // <span id="aa-gnss-threshold">3</span> METRES</div></div>
+        </div>
+        <div class="card" style="margin-top:16px"><h3>Intermediate Waypoints</h3><div id="aa-waypoint-list" class="list-editor"></div><button class="pixel-button config-edit" id="add-aa-waypoint">+ Add Waypoint</button></div>
+        <div class="actions"><button class="pixel-button primary" data-command="start" data-confirm="true">Start GNSS (DEV)</button><button class="pixel-button" data-telemetry="gnss">Simulate GNSS Fix</button><button class="pixel-button" data-command="arrived">Mark Arrived (DEV)</button><button class="pixel-button stop" data-command="stop">Stop</button></div>
+      </section>
+
+      <section class="view" data-screen="wait-command" id="screen-wait-command">
+        <div class="screen-header"><div><div class="eyebrow">Astronaut Assistance // 02</div><h2>Wait Command</h2><p>Observe astronaut tracking and allowlisted command sources while remaining stationary.</p></div><div class="state-tag">Expected // WAIT_COMMAND</div></div>
+        <div class="grid three">
+          <div class="metric"><label>Astronaut detection</label><output data-bind="person.detected">false</output></div>
+          <div class="metric"><label>Tracking ID</label><output data-bind="person.track_id">—</output></div>
+          <div class="metric"><label>Waiting state</label><output data-bind="state">READY</output></div>
+          <div class="metric"><label>Gesture</label><output data-bind="person.gesture">NONE</output></div>
+          <div class="metric"><label>Voice command</label><output data-bind="person.voice_command">NONE</output></div>
+          <div class="metric"><label>Command source</label><output data-bind="person.command_source">NONE</output></div>
+        </div>
+        <div class="actions"><button class="pixel-button" data-telemetry="person">Simulate Astronaut Track</button><button class="pixel-button primary" data-command="follow" data-confirm="true">Follow (DEV)</button><button class="pixel-button" data-command="fetch">Fetch Request (DEV)</button><button class="pixel-button stop" data-command="stop">Stop</button></div>
+      </section>
+
+      <section class="view" data-screen="follow" id="screen-follow">
+        <div class="screen-header"><div><div class="eyebrow">Astronaut Assistance // 03</div><h2>Follow</h2><p>Track one astronaut and expose suggested movement state. No motor command is emitted.</p></div><div class="state-tag">Expected // FOLLOW</div></div>
+        <div class="grid two">
+          <div class="card"><h3>Astronaut Track</h3><div class="metric-grid">
+            <div class="metric"><label>Track ID</label><output data-bind="person.track_id">—</output></div>
+            <div class="metric"><label>Distance</label><output data-bind="person.distance_m" data-unit=" m">—</output></div>
+            <div class="metric"><label>Bearing</label><output data-bind="person.bearing_deg" data-unit="°">—</output></div>
+            <div class="metric"><label>Confidence</label><output data-bind="person.confidence">—</output></div>
+            <div class="metric"><label>Camera</label><output data-bind="camera.status">DISCONNECTED</output></div>
+            <div class="metric"><label>Beckoning gesture</label><output data-bind="person.gesture">NONE</output></div>
+          </div></div>
+          <div class="card"><h3>Suggested Movement</h3><div class="movement-pad">
+            <div class="move-cell move-forward" data-move="FORWARD">▲</div><div class="move-cell move-left" data-move="LEFT">◀</div><div class="move-cell move-stop" data-move="STOP">■</div><div class="move-cell move-right" data-move="RIGHT">▶</div>
+          </div><div class="metric" style="margin-top:14px"><label>Desired following distance</label><output data-bind="desired_follow_distance_m" data-unit=" m">2.0 m</output></div></div>
+        </div>
+        <div class="actions"><button class="pixel-button" data-telemetry="person">Refresh DEV Track</button><button class="pixel-button" data-command="stay">Stay</button><button class="pixel-button" data-command="arrived">End Follow (DEV)</button><button class="pixel-button stop" data-command="stop">Stop</button></div>
+      </section>
+
+      <section class="view" data-screen="stay" id="screen-stay">
+        <div class="screen-header"><div><div class="eyebrow">Astronaut Assistance // 04</div><h2>Stay Locked</h2><p>Motion remains inhibited regardless of person-tracking output.</p></div><div class="state-tag">Expected // STAY_LOCKED</div></div>
+        <div class="grid four">
+          <div class="metric"><label>Lock state</label><output class="green" data-bind="state">READY</output></div>
+          <div class="metric"><label>Rover position</label><output id="stay-position">UNKNOWN</output></div>
+          <div class="metric"><label>Motion</label><output data-bind="motion_state">stationary</output></div>
+          <div class="metric"><label>Waiting time</label><output data-bind="stay_seconds" data-unit=" s">0 s</output></div>
+          <div class="metric"><label>Recent command</label><output data-bind="last_command.command">NONE</output></div>
+          <div class="metric"><label>Command source</label><output data-bind="last_command.source">NONE</output></div>
+        </div>
+        <div class="actions"><button class="pixel-button primary" data-command="come" data-confirm="true">Authorized Come (DEV)</button><button class="pixel-button stop" data-command="stop">Stop</button></div>
+      </section>
+
+      <section class="view" data-screen="find-hammer" id="screen-find-hammer">
+        <div class="screen-header"><div><div class="eyebrow">Astronaut Assistance // 05</div><h2>Find Hammer</h2><p>Detection and 3D staging target only. No arm or gripper control is available.</p></div><div class="state-tag">Expected // FIND_HAMMER</div></div>
+        <div class="grid two">
+          <div class="pixel-stage"><div class="crosshair"></div><div class="stage-label">ZED TARGET PLACEHOLDER // <span data-bind="hammer.detected">false</span></div></div>
+          <div class="card"><h3>Detection</h3><div class="metric-grid">
+            <div class="metric"><label>Detected</label><output data-bind="hammer.detected">false</output></div>
+            <div class="metric"><label>Confidence</label><output data-bind="hammer.confidence">—</output></div>
+            <div class="metric"><label>X / forward</label><output data-bind="hammer.x_m" data-unit=" m">—</output></div>
+            <div class="metric"><label>Y / left</label><output data-bind="hammer.y_m" data-unit=" m">—</output></div>
+            <div class="metric"><label>Z</label><output data-bind="hammer.z_m" data-unit=" m">—</output></div>
+            <div class="metric"><label>Target valid</label><output data-bind="hammer.valid">false</output></div>
+          </div></div>
+        </div>
+        <div class="actions"><button class="pixel-button primary" data-command="search">Search (DEV)</button><button class="pixel-button" data-telemetry="hammer">Simulate Hammer Target</button><button class="pixel-button" data-command="found">Mark Found (DEV)</button><button class="pixel-button safe" data-command="yes" data-confirm="true">Yes // Confirm</button><button class="pixel-button stop" data-command="no">No // Cancel</button></div>
+      </section>
+
+      <section class="view" data-screen="hammer-approach" id="screen-hammer-approach">
+        <div class="screen-header"><div><div class="eyebrow">Astronaut Assistance // 06</div><h2>Hammer Approach</h2><p>Authorization-gated approach to a safe staging location. Pickup is explicitly excluded.</p></div><div class="state-tag">Expected // APPROACH_HAMMER</div></div>
+        <div class="grid four">
+          <div class="metric"><label>Distance to hammer</label><output data-bind="hammer.distance_m" data-unit=" m">—</output></div>
+          <div class="metric"><label>Target X</label><output data-bind="hammer.x_m" data-unit=" m">—</output></div>
+          <div class="metric"><label>Target Y</label><output data-bind="hammer.y_m" data-unit=" m">—</output></div>
+          <div class="metric"><label>Pose valid</label><output data-bind="hammer.valid">false</output></div>
+          <div class="metric"><label>Approach state</label><output data-bind="state">READY</output></div>
+          <div class="metric"><label>Motor output</label><output>DISABLED</output></div>
+        </div>
+        <div class="threshold">SAFE STAGING // <span id="hammer-staging-distance">1.5</span> METRES // NO PICKUP COMMAND</div>
+        <div class="actions"><button class="pixel-button safe" data-command="yes" data-confirm="true">Authorize Approach (DEV)</button><button class="pixel-button" data-command="near">Mark Staging Reached</button><button class="pixel-button stop" data-command="stop">Stop</button></div>
+      </section>
+
+      <section class="view" data-screen="pick-hammer" id="screen-pick-hammer">
+        <div class="screen-header"><div><div class="eyebrow">Astronaut Assistance // 07</div><h2>Pick Hammer</h2><p>The interface is reserved for verified manipulator integration.</p></div><div class="state-tag">Expected // FUTURE_ARM_PICKUP</div></div>
+        <div class="future"><strong>FUTURE ARM INTEGRATION</strong><p>Gripper actuation, inverse kinematics and arm-camera calibration are not implemented.</p><button class="pixel-button" disabled>Pick Action Disabled</button></div>
+      </section>
+
+      <section class="view" data-screen="come" id="screen-come">
+        <div class="screen-header"><div><div class="eyebrow">Astronaut Assistance // 08</div><h2>Come</h2><p>Use fresh astronaut coordinates for coarse navigation, then visually reacquire. No LIVE navigation is connected.</p></div><div class="state-tag">Expected // COME</div></div>
+        <div class="grid two">
+          <div class="card accent"><h3>Updated Astronaut GNSS</h3><div class="form-grid">
+            <div class="field"><label>Latitude</label><input class="config-input" id="aa-updated-lat" type="number" min="-90" max="90" step="any" placeholder="null"></div>
+            <div class="field"><label>Longitude</label><input class="config-input" id="aa-updated-lon" type="number" min="-180" max="180" step="any" placeholder="null"></div>
+            <div class="field full"><label>UTC timestamp</label><input class="config-input" id="aa-updated-time" type="text" placeholder="2026-10-16T19:00:00Z"></div>
+          </div><div class="actions"><button class="pixel-button" id="stamp-now">Use Current UTC Time</button><button class="pixel-button save-button" data-save>Save Updated Position</button></div></div>
+          <div class="card"><h3>COME Progress</h3><div class="metric-grid">
+            <div class="metric"><label>Saved timestamp</label><output id="come-timestamp">—</output></div>
+            <div class="metric"><label>Freshness</label><output id="come-freshness">UNKNOWN</output></div>
+            <div class="metric"><label>Visual reacquisition</label><output data-bind="visual_reacquired">false</output></div>
+            <div class="metric"><label>Distance</label><output data-bind="person.distance_m" data-unit=" m">—</output></div>
+            <div class="metric"><label>Navigation state</label><output data-bind="state">READY</output></div>
+          </div><div class="threshold">SUCCESS THRESHOLD // <span id="come-threshold">3</span> METRES</div></div>
+        </div>
+        <div class="actions"><button class="pixel-button primary" data-command="come" data-confirm="true">Start Come (DEV)</button><button class="pixel-button" data-telemetry="reacquire">Simulate Visual Reacquisition</button><button class="pixel-button" data-command="arrived">Mark Arrived (DEV)</button><button class="pixel-button stop" data-command="stop">Stop</button></div>
+      </section>
+
+      <section class="view" data-screen="give" id="screen-give">
+        <div class="screen-header"><div><div class="eyebrow">Astronaut Assistance // 09</div><h2>Give Hammer</h2><p>Reserved release-state display for future verified arm integration.</p></div><div class="state-tag">Future State</div></div>
+        <div class="grid two"><div class="metric"><label>Release state</label><output>NOT INTEGRATED</output></div><div class="metric"><label>Command status</label><output>DISABLED</output></div></div>
+        <div class="future" style="margin-top:16px"><strong>PHYSICAL RELEASE DISABLED</strong><button class="pixel-button" disabled>Give Action Disabled</button></div>
+      </section>
+
+      <section class="view" data-screen="route-start" id="screen-route-start">
+        <div class="screen-header"><div><div class="eyebrow">Route Finding // 01</div><h2>Start Point</h2><p>Configure the route origin. This is saved input only and does not move the rover.</p></div><div class="state-tag">Simulation Input</div></div>
+        <div class="grid two"><div class="card accent"><h3>Start Coordinates</h3><div class="form-grid">
+          <div class="field"><label>Latitude</label><input class="config-input" id="route-start-lat" type="number" min="-90" max="90" step="any" placeholder="null"></div>
+          <div class="field"><label>Longitude</label><input class="config-input" id="route-start-lon" type="number" min="-180" max="180" step="any" placeholder="null"></div>
+        </div><div class="actions"><button class="pixel-button save-button" data-save>Save Start</button><button class="pixel-button ghost" data-reload>Load input.json</button></div></div>
+        <div class="card"><h3>Preparation</h3><div class="metric-grid"><div class="metric"><label>Rover position</label><output id="route-rover-position">UNKNOWN</output></div><div class="metric"><label>Status</label><output>INPUT READY</output></div><div class="metric"><label>LIVE backend</label><output>NOT INTEGRATED</output></div></div></div></div>
+      </section>
+
+      <section class="view" data-screen="route-target-1" id="screen-route-target-1">
+        <div class="screen-header"><div><div class="eyebrow">Route Finding // 02</div><h2>Target 1</h2><p>Independent first route target with the required one-metre arrival threshold.</p></div><div class="state-tag">Target 1</div></div>
+        <div class="card accent"><div class="form-grid"><div class="field"><label>Latitude</label><input class="config-input" id="route-t1-lat" type="number" min="-90" max="90" step="any" placeholder="null"></div><div class="field"><label>Longitude</label><input class="config-input" id="route-t1-lon" type="number" min="-180" max="180" step="any" placeholder="null"></div></div><div class="actions"><button class="pixel-button save-button" data-save>Save Target 1</button><button class="pixel-button" disabled>Start LIVE Navigation</button><button class="pixel-button stop" disabled>Stop LIVE Navigation</button></div></div>
+        <div class="threshold">ARRIVAL THRESHOLD // <span id="route-t1-threshold">1</span> METRE</div><div class="metric-grid" style="margin-top:16px"><div class="metric"><label>Progress</label><output>WAITING FOR NAV BACKEND</output></div><div class="metric"><label>Status</label><output>DISABLED</output></div></div>
+      </section>
+
+      <section class="view" data-screen="route-target-2" id="screen-route-target-2">
+        <div class="screen-header"><div><div class="eyebrow">Route Finding // 03</div><h2>Target 2</h2><p>Independent second route target. Coordinates never overwrite Target 1.</p></div><div class="state-tag">Target 2</div></div>
+        <div class="card accent"><div class="form-grid"><div class="field"><label>Latitude</label><input class="config-input" id="route-t2-lat" type="number" min="-90" max="90" step="any" placeholder="null"></div><div class="field"><label>Longitude</label><input class="config-input" id="route-t2-lon" type="number" min="-180" max="180" step="any" placeholder="null"></div></div><div class="actions"><button class="pixel-button save-button" data-save>Save Target 2</button><button class="pixel-button" disabled>Start LIVE Navigation</button><button class="pixel-button stop" disabled>Stop LIVE Navigation</button></div></div>
+        <div class="threshold">ARRIVAL THRESHOLD // <span id="route-t2-threshold">1</span> METRE</div><div class="metric-grid" style="margin-top:16px"><div class="metric"><label>Progress</label><output>WAITING FOR NAV BACKEND</output></div><div class="metric"><label>Status</label><output>DISABLED</output></div></div>
+      </section>
+
+      <section class="view" data-screen="route-waypoints" id="screen-route-waypoints">
+        <div class="screen-header"><div><div class="eyebrow">Route Finding // 04</div><h2>Waypoints &amp; Zones</h2><p>Order route points and define circular stay-out zones. The backend blocks LIVE edits unless stationary is confirmed.</p></div><div class="state-tag">Safe Editing</div></div>
+        <div class="grid two"><div class="card"><h3>Route Waypoints</h3><div id="route-waypoint-list" class="list-editor"></div><button class="pixel-button config-edit" id="add-route-waypoint">+ Add Waypoint</button></div>
+        <div class="card"><h3>Stay-Out Zones</h3><div id="zone-list" class="list-editor"></div><button class="pixel-button config-edit" id="add-zone">+ Add Zone</button></div></div>
+        <div class="card" style="margin-top:16px"><h3>Saved Mission Parameters</h3><div class="form-grid">
+          <div class="field"><label>Follow distance (m)</label><input class="config-input" id="param-follow-distance" type="number" min="0.01" max="20" step="any"></div>
+          <div class="field"><label>Astronaut threshold (m)</label><input class="config-input" id="param-aa-threshold" type="number" min="0.01" max="20" step="any"></div>
+          <div class="field"><label>Route threshold (m)</label><input class="config-input" id="param-route-threshold" type="number" min="0.01" max="20" step="any"></div>
+          <div class="field"><label>Approval timeout (s)</label><input class="config-input" id="param-approval-timeout" type="number" min="0.01" max="300" step="any"></div>
+          <div class="field"><label>GNSS freshness (s)</label><input class="config-input" id="param-gnss-freshness" type="number" min="0.01" max="3600" step="any"></div>
+          <div class="field"><label>Hammer staging (m)</label><input class="config-input" id="param-hammer-staging" type="number" min="0.01" max="20" step="any"></div>
+        </div></div>
+        <div class="actions"><button class="pixel-button primary save-button" data-save>Save Mission Parameters</button><button class="pixel-button ghost" data-reload>Discard &amp; Reload</button></div>
+      </section>
+
+      <section class="view" data-screen="route-status" id="screen-route-status">
+        <div class="screen-header"><div><div class="eyebrow">Route Finding // 05</div><h2>Route Status</h2><p>Visualization and status shell for future navigation integration. It never reports fake success.</p></div><div class="state-tag">LIVE Disabled</div></div>
+        <div class="grid two"><div class="route-map"></div><div class="card"><h3>Route Telemetry</h3><div class="metric-grid">
+          <div class="metric"><label>Active target</label><output>NONE</output></div><div class="metric"><label>Navigation</label><output>NOT INTEGRATED</output></div><div class="metric"><label>Current location</label><output id="route-current-location">UNKNOWN</output></div><div class="metric"><label>Distance remaining</label><output>—</output></div><div class="metric"><label>Waypoint progress</label><output id="route-waypoint-progress">0 / 0</output></div><div class="metric"><label>Recovery</label><output>INACTIVE</output></div>
+        </div><div class="actions"><button class="pixel-button" disabled>Start Route</button><button class="pixel-button stop" disabled>Stop Route</button></div></div></div>
+      </section>
+
+      <section class="view" data-screen="recovery" id="screen-recovery">
+        <div class="screen-header"><div><div class="eyebrow">Safety &amp; Recovery</div><h2>Recovery Console</h2><p>Review safe-stop, canceled tasks, tracking loss and backend faults. Software STOP does not replace the physical E-stop.</p></div><div class="state-tag">State // <span data-bind="state">READY</span></div></div>
+        <div class="grid two"><div class="card danger"><h3>Faults</h3><div id="fault-list" class="fault-list"><div class="metric"><output>NO ACTIVE FAULTS</output></div></div></div>
+        <div class="card"><h3>Safe State</h3><div class="metric-grid"><div class="metric"><label>Motion</label><output data-bind="motion_state">unknown</output></div><div class="metric"><label>ROS connection</label><output data-bind="ros_connected">false</output></div><div class="metric"><label>Last command</label><output data-bind="last_command.command">NONE</output></div><div class="metric"><label>Hardware STOP</label><output>EXTERNAL / REQUIRED</output></div></div></div></div>
+        <div class="notice error">SOFTWARE STOP IS NOT A PHYSICAL EMERGENCY STOP.</div>
+        <div class="actions"><button class="pixel-button stop" data-command="stop">Software Stop</button><button class="pixel-button" data-command="reset">Reset DEV State</button></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <script>
+    'use strict';
+
+    const clone = value => JSON.parse(JSON.stringify(value));
+    const $ = id => document.getElementById(id);
+    let configSnapshot = { etag: '', data: null, valid: false };
+    let workingConfig = null;
+    let runtimeStatus = null;
+    let dirty = false;
+    let pendingExternal = null;
+
+    function toast(message, error = false) {
+      const element = $('toast');
+      element.textContent = message;
+      element.style.borderColor = error ? 'var(--danger)' : 'var(--dust-light)';
+      element.classList.remove('hidden');
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => element.classList.add('hidden'), 4200);
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+        ...options,
+      });
+      let body = null;
+      try { body = await response.json(); } catch (_) { body = {}; }
+      if (!response.ok) {
+        const error = new Error(typeof body.detail === 'string' ? body.detail : `Request failed (${response.status})`);
+        error.status = response.status;
+        error.body = body;
+        throw error;
+      }
+      return body;
+    }
+
+    function showScreen(name) {
+      const target = document.querySelector(`[data-screen="${CSS.escape(name)}"]`);
+      if (!target) return;
+      document.querySelectorAll('.view').forEach(view => view.classList.toggle('active', view === target));
+      document.querySelectorAll('.nav-button').forEach(button => button.classList.toggle('active', button.dataset.screenTarget === name));
+      history.replaceState(null, '', `#${name}`);
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      const subMission = name.startsWith('route-') ? 'ROUTE FINDING'
+        : name === 'home' ? 'NONE'
+          : name === 'recovery' ? null : 'ASTRONAUT ASSISTANCE';
+      if (subMission) {
+        api('/api/sub-mission', { method: 'POST', body: JSON.stringify({ sub_mission: subMission }) })
+          .then(updateStatus)
+          .catch(error => toast(error.message, true));
+      }
+    }
+
+    function valueAt(object, path) {
+      return path.split('.').reduce((value, key) => value == null ? null : value[key], object);
+    }
+
+    function displayValue(value, unit = '') {
+      if (value === null || value === undefined || value === '') return '—';
+      if (typeof value === 'boolean') return value ? 'YES' : 'NO';
+      if (typeof value === 'number') return `${Number.isInteger(value) ? value : value.toFixed(2)}${unit}`;
+      return `${String(value).toUpperCase()}${unit}`;
+    }
+
+    function updateStatus(status) {
+      runtimeStatus = status;
+      document.querySelectorAll('[data-bind]').forEach(element => {
+        element.textContent = displayValue(valueAt(status, element.dataset.bind), element.dataset.unit || '');
+      });
+      $('global-gnss').textContent = status.gnss.fix ? 'FIX' : 'NO FIX';
+      $('home-gnss').textContent = status.gnss.fix ? 'FIX' : 'NO FIX';
+      const position = status.gnss.latitude == null ? 'UNKNOWN' : `${status.gnss.latitude.toFixed(6)}, ${status.gnss.longitude.toFixed(6)}`;
+      ['gnss-current', 'stay-position', 'route-rover-position', 'route-current-location'].forEach(id => $(id).textContent = position);
+
+      const decorate = (id, kind) => {
+        const element = $(id);
+        element.classList.remove('good', 'warn', 'bad');
+        element.classList.add(kind);
+      };
+      decorate('motion-chip', status.motion_state === 'stationary' ? 'good' : status.motion_state === 'moving' ? 'warn' : 'bad');
+      decorate('gnss-chip', status.gnss.fix ? 'good' : 'warn');
+      decorate('camera-chip', status.camera.connected ? 'good' : 'warn');
+      decorate('connection-chip', status.mode === 'DEV' ? 'good' : 'bad');
+      document.querySelectorAll('[data-move]').forEach(cell => cell.classList.toggle('active', cell.dataset.move === status.movement_direction));
+
+      const lock = status.mode === 'LIVE' && status.motion_state !== 'stationary';
+      $('editing-lock').classList.toggle('hidden', !lock);
+      document.querySelectorAll('.config-input, .config-edit, .save-button').forEach(control => control.disabled = lock);
+      $('runtime-mode').value = status.mode;
+
+      const faults = $('fault-list');
+      faults.replaceChildren();
+      if (!status.faults.length) {
+        const clear = document.createElement('div'); clear.className = 'metric'; clear.textContent = 'NO ACTIVE FAULTS'; faults.append(clear);
+      } else {
+        status.faults.forEach(item => {
+          const row = document.createElement('div'); row.className = 'fault';
+          const strong = document.createElement('strong'); strong.textContent = item.code;
+          row.append(strong, document.createElement('br'), document.createTextNode(item.message)); faults.append(row);
+        });
+      }
+      if (workingConfig) updateConfigDerived();
+    }
+
+    async function pollStatus() {
+      try {
+        updateStatus(await api('/api/status'));
+        $('connection-notice').classList.add('hidden');
+      } catch (error) {
+        $('connection-notice').textContent = `Dashboard backend unavailable: ${error.message}`;
+        $('connection-notice').classList.remove('hidden');
+      }
+    }
+
+    function numberOrNull(id) {
+      const raw = $(id).value.trim();
+      return raw === '' ? null : Number(raw);
+    }
+
+    function writeNumber(id, value) { $(id).value = value == null ? '' : value; }
+
+    function syncFormFromConfig() {
+      if (!workingConfig) return;
+      const aa = workingConfig.astronaut_assistance;
+      const route = workingConfig.route_finding;
+      writeNumber('aa-target-lat', aa.initial_target.latitude);
+      writeNumber('aa-target-lon', aa.initial_target.longitude);
+      writeNumber('aa-updated-lat', aa.updated_astronaut_location.latitude);
+      writeNumber('aa-updated-lon', aa.updated_astronaut_location.longitude);
+      $('aa-updated-time').value = aa.updated_astronaut_location.timestamp || '';
+      writeNumber('route-start-lat', route.start.latitude); writeNumber('route-start-lon', route.start.longitude);
+      writeNumber('route-t1-lat', route.target_1.latitude); writeNumber('route-t1-lon', route.target_1.longitude);
+      writeNumber('route-t2-lat', route.target_2.latitude); writeNumber('route-t2-lon', route.target_2.longitude);
+      const parameters = workingConfig.saved_parameters;
+      writeNumber('param-follow-distance', parameters.desired_follow_distance_m);
+      writeNumber('param-aa-threshold', parameters.astronaut_success_threshold_m);
+      writeNumber('param-route-threshold', parameters.route_success_threshold_m);
+      writeNumber('param-approval-timeout', parameters.approval_timeout_s);
+      writeNumber('param-gnss-freshness', parameters.gnss_freshness_s);
+      writeNumber('param-hammer-staging', parameters.hammer_staging_distance_m);
+      renderEditors(); updateConfigDerived();
+    }
+
+    function collectForm() {
+      const next = clone(workingConfig);
+      next.astronaut_assistance.initial_target = { latitude: numberOrNull('aa-target-lat'), longitude: numberOrNull('aa-target-lon') };
+      next.astronaut_assistance.updated_astronaut_location = {
+        latitude: numberOrNull('aa-updated-lat'), longitude: numberOrNull('aa-updated-lon'), timestamp: $('aa-updated-time').value.trim() || null,
+      };
+      next.route_finding.start = { latitude: numberOrNull('route-start-lat'), longitude: numberOrNull('route-start-lon') };
+      next.route_finding.target_1 = { latitude: numberOrNull('route-t1-lat'), longitude: numberOrNull('route-t1-lon') };
+      next.route_finding.target_2 = { latitude: numberOrNull('route-t2-lat'), longitude: numberOrNull('route-t2-lon') };
+      next.saved_parameters = {
+        desired_follow_distance_m: numberOrNull('param-follow-distance'),
+        astronaut_success_threshold_m: numberOrNull('param-aa-threshold'),
+        route_success_threshold_m: numberOrNull('param-route-threshold'),
+        approval_timeout_s: numberOrNull('param-approval-timeout'),
+        gnss_freshness_s: numberOrNull('param-gnss-freshness'),
+        hammer_staging_distance_m: numberOrNull('param-hammer-staging'),
+      };
+      return next;
+    }
+
+    function acceptSnapshot(snapshot, message = '') {
+      configSnapshot = snapshot;
+      workingConfig = clone(snapshot.data);
+      dirty = false; pendingExternal = null;
+      $('config-conflict').classList.add('hidden');
+      syncFormFromConfig();
+      if (message) toast(message);
+    }
+
+    async function reloadConfig(force = false) {
+      try {
+        const snapshot = await api('/api/config');
+        if (!snapshot.valid) {
+          $('connection-notice').textContent = `input.json is invalid: ${snapshot.error}`;
+          $('connection-notice').classList.remove('hidden');
+          return;
+        }
+        if (!force && configSnapshot.etag && snapshot.etag !== configSnapshot.etag && dirty) {
+          pendingExternal = snapshot; $('config-conflict').classList.remove('hidden'); return;
+        }
+        if (force || !configSnapshot.etag || snapshot.etag !== configSnapshot.etag) {
+          acceptSnapshot(snapshot, configSnapshot.etag ? 'input.json reloaded from disk' : 'Mission input loaded');
+        }
+      } catch (error) { toast(error.message, true); }
+    }
+
+    async function saveConfig() {
+      if (!workingConfig) return;
+      try {
+        workingConfig = collectForm();
+        const snapshot = await api('/api/config', { method: 'PUT', body: JSON.stringify({ etag: configSnapshot.etag, data: workingConfig }) });
+        acceptSnapshot(snapshot, 'input.json saved atomically');
+      } catch (error) {
+        if (error.status === 409 && error.body.current) {
+          pendingExternal = error.body.current; $('config-conflict').classList.remove('hidden');
+        }
+        toast(error.message, true);
+      }
+    }
+
+    function markDirty() { if (workingConfig) dirty = true; }
+
+    function makeField(label, value, onChange, options = {}) {
+      const wrapper = document.createElement('label'); wrapper.className = 'field';
+      const caption = document.createElement('span'); caption.textContent = label;
+      const input = document.createElement('input'); input.className = 'config-input'; input.value = value ?? '';
+      input.type = options.type || 'text'; if (options.min != null) input.min = options.min; if (options.max != null) input.max = options.max; input.step = options.step || 'any';
+      input.addEventListener('input', () => { onChange(input.value); markDirty(); }); wrapper.append(caption, input); return wrapper;
+    }
+
+    function renderPointList(containerId, points, kind) {
+      const container = $(containerId); container.replaceChildren();
+      if (!points.length) { const empty = document.createElement('p'); empty.textContent = 'No saved points.'; container.append(empty); }
+      points.forEach((point, index) => {
+        const row = document.createElement('div'); row.className = 'list-row';
+        row.append(
+          makeField('Name', point.name, value => point.name = value),
+          makeField('Latitude', point.latitude, value => point.latitude = value === '' ? null : Number(value), { type: 'number', min: -90, max: 90 }),
+          makeField('Longitude', point.longitude, value => point.longitude = value === '' ? null : Number(value), { type: 'number', min: -180, max: 180 }),
+        );
+        const actions = document.createElement('div'); actions.className = 'mini-actions';
+        [['↑', -1], ['↓', 1]].forEach(([label, delta]) => { const button = document.createElement('button'); button.className = 'mini config-edit'; button.textContent = label; button.disabled = index + delta < 0 || index + delta >= points.length; button.addEventListener('click', () => { [points[index], points[index + delta]] = [points[index + delta], points[index]]; markDirty(); renderEditors(); }); actions.append(button); });
+        const remove = document.createElement('button'); remove.className = 'mini config-edit'; remove.textContent = '×'; remove.addEventListener('click', () => { points.splice(index, 1); markDirty(); renderEditors(); }); actions.append(remove); row.append(actions); container.append(row);
+      });
+    }
+
+    function renderZones() {
+      const zones = workingConfig.route_finding.stay_out_zones; const container = $('zone-list'); container.replaceChildren();
+      if (!zones.length) { const empty = document.createElement('p'); empty.textContent = 'No stay-out zones.'; container.append(empty); }
+      zones.forEach((zone, index) => {
+        const row = document.createElement('div'); row.className = 'list-row zone';
+        row.append(
+          makeField('Name', zone.name, value => zone.name = value),
+          makeField('Latitude', zone.latitude, value => zone.latitude = value === '' ? null : Number(value), { type: 'number', min: -90, max: 90 }),
+          makeField('Longitude', zone.longitude, value => zone.longitude = value === '' ? null : Number(value), { type: 'number', min: -180, max: 180 }),
+          makeField('Radius m', zone.radius_m, value => zone.radius_m = Number(value), { type: 'number', min: .1, max: 10000 }),
+        );
+        const remove = document.createElement('button'); remove.className = 'mini config-edit'; remove.textContent = '×'; remove.addEventListener('click', () => { zones.splice(index, 1); markDirty(); renderEditors(); }); row.append(remove); container.append(row);
+      });
+    }
+
+    function renderEditors() {
+      if (!workingConfig) return;
+      renderPointList('aa-waypoint-list', workingConfig.astronaut_assistance.intermediate_waypoints, 'astronaut');
+      renderPointList('route-waypoint-list', workingConfig.route_finding.waypoints, 'route');
+      renderZones();
+      if (runtimeStatus) updateStatus(runtimeStatus);
+    }
+
+    function updateConfigDerived() {
+      const updated = workingConfig.astronaut_assistance.updated_astronaut_location;
+      const parameters = workingConfig.saved_parameters;
+      $('aa-gnss-threshold').textContent = displayValue(parameters.astronaut_success_threshold_m);
+      $('come-threshold').textContent = displayValue(parameters.astronaut_success_threshold_m);
+      $('route-t1-threshold').textContent = displayValue(parameters.route_success_threshold_m);
+      $('route-t2-threshold').textContent = displayValue(parameters.route_success_threshold_m);
+      $('hammer-staging-distance').textContent = displayValue(parameters.hammer_staging_distance_m);
+      $('route-waypoint-progress').textContent = `0 / ${workingConfig.route_finding.waypoints.length}`;
+      $('come-timestamp').textContent = updated.timestamp || '—';
+      if (!updated.timestamp) { $('come-freshness').textContent = 'MISSING'; return; }
+      const age = Math.max(0, (Date.now() - Date.parse(updated.timestamp)) / 1000);
+      const limit = workingConfig.saved_parameters.gnss_freshness_s;
+      $('come-freshness').textContent = Number.isFinite(age) ? `${Math.round(age)} s // ${age <= limit ? 'FRESH' : 'STALE'}` : 'INVALID';
+    }
+
+    async function sendCommand(command, confirmed = false) {
+      if (confirmed && !window.confirm(`${command.toUpperCase()} may transition to a movement-capable DEV state. Continue?`)) return;
+      try {
+        const result = await api('/api/command', { method: 'POST', body: JSON.stringify({ command, confirmed, source: 'dashboard' }) });
+        updateStatus(result.status); toast(`${command.toUpperCase()} accepted // no hardware command sent`);
+      } catch (error) { toast(error.message, true); }
+    }
+
+    async function simulate(kind) {
+      const now = new Date().toISOString();
+      const updates = {
+        gnss: { gnss_fix: true, gnss_latitude: numberOrNull('aa-target-lat') ?? 38.406, gnss_longitude: numberOrNull('aa-target-lon') ?? -110.792 },
+        person: { camera_connected: true, person_detected: true, person_track_id: 7, person_distance_m: 3.2, person_bearing_deg: 8.5, person_confidence: .93, gesture: 'BECKON_DEV', command_source: 'astronaut gesture' },
+        hammer: { camera_connected: true, hammer_detected: true, hammer_valid: true, hammer_x_m: 2.4, hammer_y_m: -.3, hammer_z_m: 0, hammer_distance_m: 2.42, hammer_confidence: .9 },
+        reacquire: { visual_reacquired: true, camera_connected: true, person_detected: true, person_track_id: 7, person_distance_m: 2.8, person_bearing_deg: 2, person_confidence: .91 },
+      }[kind];
+      if (!updates) return;
+      try { updateStatus(await api('/api/dev/telemetry', { method: 'POST', body: JSON.stringify({ updates }) })); toast(`${kind.toUpperCase()} DEV telemetry injected at ${now.slice(11, 19)}Z`); }
+      catch (error) { toast(error.message, true); }
+    }
+
+    document.addEventListener('click', event => {
+      const screenButton = event.target.closest('[data-screen-target]'); if (screenButton) showScreen(screenButton.dataset.screenTarget);
+      const commandButton = event.target.closest('[data-command]'); if (commandButton) sendCommand(commandButton.dataset.command, commandButton.dataset.confirm === 'true');
+      const telemetryButton = event.target.closest('[data-telemetry]'); if (telemetryButton) simulate(telemetryButton.dataset.telemetry);
+      if (event.target.closest('[data-save]')) saveConfig();
+      if (event.target.closest('[data-reload]')) reloadConfig(true);
+    });
+
+    document.addEventListener('input', event => { if (event.target.classList.contains('config-input')) markDirty(); });
+    $('reload-conflict').addEventListener('click', () => { if (pendingExternal?.valid) acceptSnapshot(pendingExternal, 'External input.json changes loaded'); else reloadConfig(true); });
+    $('add-aa-waypoint').addEventListener('click', () => { workingConfig.astronaut_assistance.intermediate_waypoints.push({ name: `Waypoint ${workingConfig.astronaut_assistance.intermediate_waypoints.length + 1}`, latitude: 0, longitude: 0 }); markDirty(); renderEditors(); });
+    $('add-route-waypoint').addEventListener('click', () => { workingConfig.route_finding.waypoints.push({ name: `Route ${workingConfig.route_finding.waypoints.length + 1}`, latitude: 0, longitude: 0 }); markDirty(); renderEditors(); });
+    $('add-zone').addEventListener('click', () => { workingConfig.route_finding.stay_out_zones.push({ name: `Zone ${workingConfig.route_finding.stay_out_zones.length + 1}`, latitude: 0, longitude: 0, radius_m: 5 }); markDirty(); renderEditors(); });
+    $('stamp-now').addEventListener('click', () => { $('aa-updated-time').value = new Date().toISOString(); markDirty(); updateConfigDerived(); });
+    $('apply-mode').addEventListener('click', async () => {
+      const mode = $('runtime-mode').value;
+      if (mode === 'LIVE' && !window.confirm('LIVE integration is unavailable. LIVE mode will lock movement and most configuration edits. Continue?')) return;
+      try { updateStatus(await api('/api/mode', { method: 'POST', body: JSON.stringify({ mode }) })); toast(`Mode changed to ${mode}`); } catch (error) { toast(error.message, true); }
+    });
+
+    const initialScreen = location.hash.slice(1) || 'home'; showScreen(initialScreen);
+    reloadConfig(true); pollStatus();
+    setInterval(() => reloadConfig(false), 2000);
+    setInterval(pollStatus, 1000);
+  </script>
+</body>
+</html>
