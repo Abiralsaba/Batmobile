@@ -1,0 +1,16 @@
+# Mock/starter values only: inspect real ROS graph before connecting hardware.
+mission:
+  mode: dev
+  allow_motor_output: false
+  desired_follow_m: 2.0
+  max_speed_mps: 0.20
+  max_turn_radps: 0.30
+  min_track_confidence: 0.65
+  max_track_age_s: 0.50
+  approval_timeout_s: 10.0
+ros:
+  dev_command: /dev/cmd
+  mission_state: /rover/state
+  person_track: /astronaut/track
+  hammer_track: /hammer/track
+  # Real ZED/IMU/GNSS topic names TBD
