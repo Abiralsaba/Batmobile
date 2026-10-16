@@ -1,0 +1,5 @@
+# Jetson Python packages ONLY. Verify versions with JetPack + ZED first.
+-r requirements.txt
+numpy>=1.23,<2.0
+# ROS 2 Humble, ZED SDK, CUDA, TensorRT, ZED GMSL2 drivers: see DEPENDENCIES.md.
+# Do not add generic pip torch / tensorrt / pyzed without Jetson validation.
